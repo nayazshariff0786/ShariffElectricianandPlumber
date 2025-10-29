@@ -2,14 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Shariff Electrician and Plumber</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   
   <style>
-    /* SCSS Variables converted to CSS Custom Properties */
-    
     :root {
       --primary-electric: #fbbf24;
       --primary-water: #06b6d4;
@@ -29,12 +27,18 @@
       --max-width: 1280px;
       --transition: cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
@@ -44,9 +48,57 @@
       line-height: 1.6;
       overflow-x: hidden;
       position: relative;
+      min-height: 100vh;
     }
 
-    /* Interactive Animated Background */
+    /* Loader Styles */
+    #loader-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    #loader-wrapper.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .loader {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(251, 191, 36, 0.2);
+      border-top: 4px solid var(--primary-electric);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loader-text {
+      color: rgba(255, 255, 255, 0.8);
+      margin-top: 1.5rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      animation: pulse-text 1.5s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse-text {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
     #bg-canvas {
       position: fixed;
       top: 0;
@@ -60,9 +112,14 @@
     .content-wrapper {
       position: relative;
       z-index: 1;
+      opacity: 0;
+      transition: opacity 0.8s ease;
     }
 
-    /* Floating particles overlay */
+    .content-wrapper.visible {
+      opacity: 1;
+    }
+
     .particles {
       position: fixed;
       top: 0;
@@ -71,12 +128,14 @@
       height: 100%;
       z-index: 0;
       pointer-events: none;
+      overflow: hidden;
     }
 
     .particle {
       position: absolute;
       border-radius: 50%;
       animation: float 20s infinite ease-in-out;
+      will-change: transform;
     }
 
     .particle.electric {
@@ -90,46 +149,54 @@
     }
 
     @keyframes float {
-      0%, 100% { transform: translateY(0) translateX(0); }
-      25% { transform: translateY(-30px) translateX(20px); }
-      50% { transform: translateY(-60px) translateX(-20px); }
-      75% { transform: translateY(-30px) translateX(30px); }
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      25% { transform: translate3d(20px, -30px, 0); }
+      50% { transform: translate3d(-20px, -60px, 0); }
+      75% { transform: translate3d(30px, -30px, 0); }
     }
 
     .container {
       max-width: var(--max-width);
       margin: 0 auto;
-      padding: 0 2rem;
+      padding: 0 clamp(1rem, 4vw, 1.5rem);
     }
 
-    /* Header with glassmorphism */
+    /* Header */
     header {
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 1rem 0;
+      padding: clamp(0.75rem, 2vw, 1rem) 0;
       position: sticky;
       top: 0;
       z-index: 100;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s var(--transition);
+    }
+
+    header.scrolled {
+      background: rgba(15, 23, 42, 0.95);
+      padding: 0.5rem 0;
     }
 
     .header-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 1rem;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: clamp(0.5rem, 2vw, 0.75rem);
     }
 
     .logo {
-      width: 56px;
-      height: 56px;
-      border-radius: 14px;
+      width: clamp(40px, 10vw, 48px);
+      height: clamp(40px, 10vw, 48px);
+      border-radius: 12px;
       background: linear-gradient(135deg, var(--primary-electric), var(--accent-orange));
       display: flex;
       align-items: center;
@@ -137,46 +204,77 @@
       position: relative;
       overflow: hidden;
       box-shadow: 0 4px 16px rgba(251, 191, 36, 0.3);
+      flex-shrink: 0;
+      transition: transform 0.3s var(--transition);
+    }
+
+    .logo:hover {
+      transform: scale(1.05);
     }
 
     .logo::before {
       content: '⚡';
-      font-size: 28px;
+      font-size: clamp(20px, 5vw, 24px);
       position: absolute;
-      animation: pulse 2s infinite;
+      animation: pulse-icon 2s infinite;
     }
 
     .logo::after {
       content: '💧';
-      font-size: 28px;
+      font-size: clamp(20px, 5vw, 24px);
       position: absolute;
-      animation: pulse 2s infinite 1s;
+      animation: pulse-icon 2s infinite 1s;
       opacity: 0;
     }
 
-    @keyframes pulse {
+    @keyframes pulse-icon {
       0%, 100% { opacity: 0; transform: scale(0.8); }
       50% { opacity: 1; transform: scale(1); }
     }
 
     .brand-text h1 {
-      font-size: 1.5rem;
+      font-size: clamp(1rem, 4vw, 1.5rem);
       font-weight: 800;
       background: linear-gradient(135deg, var(--primary-electric), var(--primary-water));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      line-height: 1.2;
     }
 
     .brand-text p {
-      font-size: 0.75rem;
-      color: var(--muted);
+      font-size: clamp(0.625rem, 2vw, 0.75rem);
       color: rgba(255, 255, 255, 0.6);
+      line-height: 1.3;
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+      display: none;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem 0.75rem;
+      z-index: 101;
+      border-radius: 8px;
+      transition: all 0.3s var(--transition);
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mobile-menu-toggle:active {
+      transform: scale(0.95);
     }
 
     nav {
       display: flex;
-      gap: 2rem;
+      gap: clamp(0.75rem, 2vw, 1.5rem);
       align-items: center;
     }
 
@@ -184,10 +282,12 @@
       color: rgba(255, 255, 255, 0.9);
       text-decoration: none;
       font-weight: 600;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem clamp(0.5rem, 2vw, 1rem);
       border-radius: 8px;
       transition: all 0.3s var(--transition);
       position: relative;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      white-space: nowrap;
     }
 
     nav a::after {
@@ -202,45 +302,59 @@
       transform: translateX(-50%);
     }
 
-    nav a:hover::after {
+    nav a:hover::after,
+    nav a:active::after {
       width: 80%;
     }
 
-    nav a:hover {
+    nav a:hover,
+    nav a:active {
       color: var(--accent-purple);
     }
 
     .cta-btn {
       background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
       color: white;
-      padding: 0.75rem 1.5rem;
+      padding: clamp(0.625rem, 2vw, 0.75rem) clamp(1rem, 2.5vw, 1.25rem);
       border-radius: 12px;
       font-weight: 700;
       border: none;
       cursor: pointer;
       box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
       transition: all 0.3s var(--transition);
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      white-space: nowrap;
     }
 
-    .cta-btn:hover {
+    .cta-btn a {
+      text-decoration: none;
+      color: white;
+    }
+
+    .cta-btn:hover,
+    .cta-btn:active {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(168, 85, 247, 0.6);
     }
 
     /* Hero Section */
     .hero {
-      padding: 6rem 0 4rem;
+      padding: clamp(2rem, 8vw, 6rem) 0 clamp(2rem, 5vw, 4rem);
       display: grid;
-      grid-template-columns: 1fr 500px;
-      gap: 4rem;
+      grid-template-columns: 1fr;
+      gap: clamp(2rem, 5vw, 3rem);
       align-items: center;
     }
 
+    .hero-content {
+      text-align: center;
+    }
+
     .hero-content h2 {
-      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-size: clamp(1.75rem, 7vw, 4rem);
       font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 1.5rem;
+      line-height: 1.15;
+      margin-bottom: clamp(1rem, 3vw, 1.5rem);
       background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -255,29 +369,36 @@
     }
 
     .hero-content p {
-      font-size: 1.25rem;
+      font-size: clamp(0.9375rem, 3.5vw, 1.25rem);
       color: rgba(255, 255, 255, 0.7);
-      margin-bottom: 2rem;
+      margin-bottom: clamp(1.5rem, 3vw, 2rem);
       max-width: 540px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
     }
 
     .hero-buttons {
       display: flex;
       gap: 1rem;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     .btn {
-      padding: 1rem 2rem;
+      padding: clamp(0.75rem, 2vw, 1rem) clamp(1.25rem, 3vw, 2rem);
       border-radius: 12px;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: clamp(0.875rem, 2vw, 1rem);
       border: none;
       cursor: pointer;
       transition: all 0.3s var(--transition);
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
+      text-decoration: none;
+      touch-action: manipulation;
     }
 
     .btn-primary {
@@ -286,7 +407,8 @@
       box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover,
+    .btn-primary:active {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(16, 185, 129, 0.6);
     }
@@ -295,10 +417,12 @@
       background: rgba(255, 255, 255, 0.1);
       color: white;
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .btn-secondary:hover {
+    .btn-secondary:hover,
+    .btn-secondary:active {
       background: rgba(255, 255, 255, 0.15);
       transform: translateY(-2px);
     }
@@ -306,15 +430,22 @@
     /* Hero Visual */
     .hero-visual {
       position: relative;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     .service-card {
       background: rgba(255, 255, 255, 0.95);
-      border-radius: 24px;
-      padding: 2rem;
+      border-radius: 20px;
+      padding: clamp(1.25rem, 4vw, 2rem);
       box-shadow: var(--shadow-lg);
       position: relative;
       overflow: hidden;
+      transition: transform 0.3s var(--transition);
+    }
+
+    .service-card:hover {
+      transform: translateY(-4px);
     }
 
     .service-card::before {
@@ -327,68 +458,85 @@
       background: linear-gradient(90deg, var(--primary-electric), var(--primary-water));
     }
 
+    .service-card h3 {
+      color: var(--dark);
+      margin-bottom: clamp(0.75rem, 2vw, 1rem);
+      font-size: clamp(1rem, 3.5vw, 1.25rem);
+    }
+
     .service-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-top: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: clamp(0.75rem, 2vw, 1rem);
+      margin-top: clamp(0.75rem, 2vw, 1rem);
     }
 
     .mini-card {
       background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(6, 182, 212, 0.1));
-      padding: 1.5rem;
+      padding: clamp(0.875rem, 2.5vw, 1.5rem);
       border-radius: 16px;
       border: 1px solid rgba(251, 191, 36, 0.2);
       transition: all 0.3s var(--transition);
     }
 
-    .mini-card:hover {
+    .mini-card:hover,
+    .mini-card:active {
       transform: translateY(-4px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
     .mini-card .icon {
-      font-size: 2rem;
+      font-size: clamp(1.5rem, 5vw, 2rem);
       margin-bottom: 0.5rem;
+      display: block;
     }
 
     .mini-card h4 {
-      font-size: 1rem;
+      font-size: clamp(0.8125rem, 2.5vw, 1rem);
       margin-bottom: 0.25rem;
       color: var(--dark);
     }
 
     .mini-card p {
-      font-size: 0.875rem;
+      font-size: clamp(0.6875rem, 2vw, 0.875rem);
       color: var(--muted);
       margin: 0;
+      line-height: 1.4;
     }
 
-    /* About Section - NEW */
+    /* About Section */
     .about-section {
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(20px);
-      border-radius: 24px;
-      padding: 4rem 2rem;
-      margin: 4rem 0;
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem);
+      margin: clamp(2rem, 5vw, 4rem) 0;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .about-container {
       display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 3rem;
+      grid-template-columns: 1fr;
+      gap: clamp(1.5rem, 4vw, 2rem);
       align-items: center;
     }
 
     .profile-card {
       background: rgba(255, 255, 255, 0.95);
-      border-radius: 24px;
-      padding: 2rem;
+      border-radius: 20px;
+      padding: clamp(1.5rem, 4vw, 2rem);
       text-align: center;
       box-shadow: var(--shadow-lg);
       position: relative;
       overflow: hidden;
+      max-width: 350px;
+      margin: 0 auto;
+      transition: transform 0.3s var(--transition);
+    }
+
+    .profile-card:hover {
+      transform: translateY(-4px);
     }
 
     .profile-card::before {
@@ -402,52 +550,58 @@
     }
 
     .profile-image {
-      width: 150px;
-      height: 150px;
+      width: clamp(100px, 30vw, 150px);
+      height: clamp(100px, 30vw, 150px);
       border-radius: 50%;
-      margin: 0 auto 1.5rem;
+      margin: 0 auto clamp(1rem, 3vw, 1.5rem);
       background: linear-gradient(135deg, var(--accent-purple), var(--accent-green));
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 4rem;
+      font-size: clamp(3rem, 10vw, 4rem);
       box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
       position: relative;
       overflow: hidden;
+      transition: transform 0.3s var(--transition);
     }
 
-    .profile-image::after {
-      content: '';
-      position: absolute;
-      inset: 4px;
+    .profile-image:hover {
+      transform: scale(1.05);
+    }
+
+    .profile-image img {
+      width: 90%;
+      height: 103%;
+      position: relative;
+      top: 5%;
       border-radius: 50%;
-      background: linear-gradient(135deg, #fff, #f8f9fa);
-      z-index: -1;
+      object-fit: cover;
     }
 
     .profile-name {
-      font-size: 1.5rem;
+      font-size: clamp(1.125rem, 4vw, 1.5rem);
       font-weight: 800;
       color: var(--dark);
       margin-bottom: 0.5rem;
     }
 
     .profile-title {
-      font-size: 1rem;
+      font-size: clamp(0.8125rem, 2.5vw, 1rem);
       color: var(--muted);
-      margin-bottom: 1rem;
+      margin-bottom: clamp(0.75rem, 2vw, 1rem);
     }
 
     .profile-social {
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       justify-content: center;
-      margin-top: 1.5rem;
+      margin-top: clamp(1rem, 3vw, 1.5rem);
+      flex-wrap: wrap;
     }
 
     .social-icon {
-      width: 40px;
-      height: 40px;
+      width: clamp(36px, 10vw, 40px);
+      height: clamp(36px, 10vw, 40px);
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -458,23 +612,27 @@
       text-decoration: none;
     }
 
+    .social-icon svg {
+      width: clamp(18px, 5vw, 20px);
+      height: clamp(18px, 5vw, 20px);
+      fill: white;
+    }
+
     .social-icon.linkedin {
       background: linear-gradient(135deg, #0077b5, #00a0dc);
-      color: white;
     }
 
     .social-icon.github {
       background: linear-gradient(135deg, #333, #24292e);
-      color: white;
     }
 
     .social-icon.email {
       background: linear-gradient(135deg, var(--accent-orange), var(--accent-blue));
-      color: white;
     }
 
-    .social-icon:hover {
-      transform: translateY(-4px);
+    .social-icon:hover,
+    .social-icon:active {
+      transform: translateY(-4px) scale(1.05);
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     }
 
@@ -483,28 +641,29 @@
     }
 
     .about-content h2 {
-      font-size: 2.5rem;
+      font-size: clamp(1.5rem, 6vw, 2.5rem);
       font-weight: 800;
       color: white;
-      margin-bottom: 1.5rem;
+      margin-bottom: clamp(1rem, 3vw, 1.5rem);
       background: linear-gradient(135deg, var(--accent-purple), var(--accent-green));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      text-align: center;
     }
 
     .about-content p {
-      font-size: 1.125rem;
-      line-height: 1.8;
-      margin-bottom: 1.5rem;
+      font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+      line-height: 1.7;
+      margin-bottom: clamp(1rem, 3vw, 1.5rem);
       color: rgba(255, 255, 255, 0.8);
     }
 
     .skills-list {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-      margin-top: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: clamp(0.75rem, 2vw, 1rem);
+      margin-top: clamp(1.5rem, 3vw, 2rem);
     }
 
     .skill-item {
@@ -512,59 +671,95 @@
       align-items: center;
       gap: 0.75rem;
       background: rgba(255, 255, 255, 0.08);
-      padding: 1rem;
+      padding: clamp(0.75rem, 2vw, 1rem);
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       transition: all 0.3s var(--transition);
     }
 
-    .skill-item:hover {
+    .skill-item:hover,
+    .skill-item:active {
       background: rgba(255, 255, 255, 0.12);
       transform: translateX(4px);
     }
 
     .skill-icon {
-      font-size: 1.5rem;
+      font-size: clamp(1.125rem, 4vw, 1.5rem);
     }
 
     .skill-name {
       font-weight: 600;
       color: white;
+      font-size: clamp(0.8125rem, 2.5vw, 1rem);
     }
 
     /* Features Section */
     .features {
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(20px);
-      border-radius: 24px;
-      padding: 3rem 2rem;
-      margin: 4rem 0;
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 3vw, 2rem);
+      margin: clamp(2rem, 5vw, 4rem) 0;
       border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: clamp(1.5rem, 3vw, 2rem);
+    }
+
+    .section-header h2 {
+      font-size: clamp(1.5rem, 6vw, 2.5rem);
+      font-weight: 800;
+      color: white;
+      margin-bottom: clamp(0.75rem, 2vw, 1rem);
+    }
+
+    .section-header p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: clamp(0.875rem, 2.5vw, 1.125rem);
     }
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: clamp(1.25rem, 3vw, 2rem);
+      margin-top: clamp(1.5rem, 3vw, 2rem);
     }
 
     .feature-item {
       display: flex;
-      align-items: flex-start;
-      gap: 1rem;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: clamp(0.75rem, 2vw, 1rem);
+      transition: transform 0.3s var(--transition);
+    }
+
+    .feature-item:hover {
+      transform: translateY(-4px);
     }
 
     .feature-icon {
-      width: 56px;
-      height: 56px;
+      width: clamp(48px, 12vw, 56px);
+      height: clamp(48px, 12vw, 56px);
       border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
+      font-size: clamp(1.25rem, 4vw, 1.5rem);
       flex-shrink: 0;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s var(--transition);
+    }
+
+    .feature-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .feature-icon img {
+      height: 50%;
     }
 
     .feature-icon.electric {
@@ -577,47 +772,31 @@
 
     .feature-text h3 {
       color: white;
-      font-size: 1.125rem;
+      font-size: clamp(0.9375rem, 3vw, 1.125rem);
       margin-bottom: 0.5rem;
     }
 
     .feature-text p {
       color: rgba(255, 255, 255, 0.6);
-      font-size: 0.9rem;
+      font-size: clamp(0.8125rem, 2.5vw, 0.9rem);
+      line-height: 1.6;
     }
 
     /* Services Section */
     .services-section {
-      padding: 4rem 0;
-    }
-
-    .section-header {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-
-    .section-header h2 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: white;
-      margin-bottom: 1rem;
-    }
-
-    .section-header p {
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 1.125rem;
+      padding: clamp(1.5rem, 5vw, 4rem) 0;
     }
 
     .services-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: clamp(1rem, 3vw, 1.5rem);
     }
 
     .service-item {
       background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
-      padding: 2rem;
+      padding: clamp(1.25rem, 4vw, 2rem);
       transition: all 0.4s var(--transition);
       position: relative;
       overflow: hidden;
@@ -635,49 +814,53 @@
       transition: transform 0.4s var(--transition);
     }
 
-    .service-item:hover::before {
+    .service-item:hover::before,
+    .service-item:active::before {
       transform: scaleX(1);
     }
 
-    .service-item:hover {
+    .service-item:hover,
+    .service-item:active {
       transform: translateY(-8px);
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
     }
 
     .service-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
+      font-size: clamp(1.75rem, 6vw, 3rem);
+      margin-bottom: clamp(0.75rem, 2vw, 1rem);
+      display: block;
     }
 
     .service-item h3 {
-      font-size: 1.5rem;
+      font-size: clamp(1rem, 3.5vw, 1.5rem);
       color: var(--dark);
-      margin-bottom: 1rem;
+      margin-bottom: clamp(0.75rem, 2vw, 1rem);
     }
 
     .service-item p {
       color: var(--muted);
       line-height: 1.7;
+      font-size: clamp(0.8125rem, 2.5vw, 1rem);
     }
 
     /* Stats Counter */
     .stats {
       background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(6, 182, 212, 0.1));
-      border-radius: 24px;
-      padding: 3rem 2rem;
-      margin: 4rem 0;
+      border-radius: 20px;
+      padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 3vw, 2rem);
+      margin: clamp(2rem, 5vw, 4rem) 0;
       border: 1px solid rgba(251, 191, 36, 0.2);
     }
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: clamp(1.5rem, 3vw, 2rem);
       text-align: center;
     }
 
     .stat-item h3 {
-      font-size: 3rem;
+      font-size: clamp(1.75rem, 8vw, 3rem);
       font-weight: 800;
       background: linear-gradient(135deg, var(--primary-electric), var(--primary-water));
       -webkit-background-clip: text;
@@ -688,7 +871,7 @@
 
     .stat-item p {
       color: rgba(255, 255, 255, 0.8);
-      font-size: 1.125rem;
+      font-size: clamp(0.8125rem, 2.5vw, 1.125rem);
       font-weight: 600;
     }
 
@@ -696,120 +879,202 @@
     footer {
       background: rgba(15, 23, 42, 0.8);
       backdrop-filter: blur(20px);
-      padding: 3rem 0 1.5rem;
-      margin-top: 6rem;
+      -webkit-backdrop-filter: blur(20px);
+      padding: clamp(1.5rem, 5vw, 3rem) 0 clamp(1rem, 3vw, 1.5rem);
+      margin-top: clamp(3rem, 6vw, 6rem);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .footer-content {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 2rem;
+      text-align: center;
+      gap: clamp(1rem, 3vw, 1.5rem);
     }
 
     .footer-brand h3 {
       color: white;
-      font-size: 1.5rem;
+      font-size: clamp(1.125rem, 4vw, 1.5rem);
       margin-bottom: 0.5rem;
     }
 
     .footer-brand p {
       color: rgba(255, 255, 255, 0.6);
+      font-size: clamp(0.8125rem, 2.5vw, 1rem);
     }
 
     .footer-links {
       display: flex;
-      gap: 2rem;
+      flex-wrap: wrap;
+      gap: clamp(1rem, 3vw, 1.5rem);
+      justify-content: center;
     }
 
     .footer-links a {
       color: rgba(255, 255, 255, 0.8);
       text-decoration: none;
       transition: color 0.3s;
+      font-size: clamp(0.8125rem, 2.5vw, 1rem);
     }
 
-    .footer-links a:hover {
+    .footer-links a:hover,
+    .footer-links a:active {
       color: var(--accent-purple);
     }
 
     /* Responsive Design */
-    @media (max-width: 968px) {
+    @media (min-width: 769px) {
       .hero {
-        grid-template-columns: 1fr;
-        text-align: center;
+        grid-template-columns: 1fr 500px;
+        text-align: left;
+      }
+
+      .hero-content {
+        text-align: left;
       }
 
       .hero-content p {
-        margin-left: auto;
-        margin-right: auto;
+        margin-left: 0;
+        margin-right: 0;
       }
 
       .hero-buttons {
-        justify-content: center;
+        justify-content: flex-start;
+      }
+
+      .about-container {
+        grid-template-columns: 300px 1fr;
+      }
+
+      .about-content h2 {
+        text-align: left;
+      }
+
+      .feature-item {
+        flex-direction: row;
+        text-align: left;
+      }
+
+      .footer-content {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .mobile-menu-toggle {
+        display: flex;
       }
 
       nav {
-        display: none;
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: min(280px, 80vw);
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.98);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 5rem 2rem 2rem;
+        gap: 0.5rem;
+        transition: right 0.4s var(--transition);
+        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+        overflow-y: auto;
+      }
+
+      nav.active {
+        right: 0;
+      }
+
+      nav a {
+        width: 100%;
+        text-align: center;
+        padding: 1rem;
+        font-size: 1.125rem;
+      }
+
+      .cta-btn {
+        width: 100%;
+        margin-top: 1rem;
+      }
+
+      .service-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
 
       .features-grid {
         grid-template-columns: 1fr;
       }
-
-      .about-container {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-
-      .skills-list {
-        grid-template-columns: 1fr;
-      }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 480px) {
       .service-grid {
         grid-template-columns: 1fr;
       }
 
-      .hero-content h2 {
-        font-size: 2rem;
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Performance optimizations */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Touch improvements */
+    @media (hover: none) and (pointer: coarse) {
+      .btn,
+      .cta-btn,
+      .social-icon,
+      nav a {
+        min-height: 44px;
+        min-width: 44px;
       }
     }
   </style>
 </head>
 <body>
-     <!-- Loader Overlay -->
+  <!-- Loader Overlay -->
   <div id="loader-wrapper">
     <div class="loader"></div>
     <span class="loader-text">Loading...</span>
   </div>
+
   <!-- Animated Background Canvas -->
   <canvas id="bg-canvas"></canvas>
+
   <!-- Floating Particles -->
   <div class="particles" id="particles"></div>
+
   <!-- Content -->
   <div class="content-wrapper" id="main-content">
-    <!-- (YOUR MAIN CONTENT STARTS HERE, e.g., header, nav, main, sections, etc.) -->
-    <!-- Place all your real content in this div or inside .content-wrapper as in your original code -->
-    <header>
-      <!-- ... your header code ... -->
-    </header>
-    <main class="container">
-      <!-- ... the rest of your original HTML ... -->
-    </main>
-    <!-- ... the rest of your sections and footer ... -->
-  </div>
-  <!-- Animated Background Canvas -->
-  <canvas id="bg-canvas"></canvas>
-
-  <!-- Floating Particles -->
-  <div class="particles" id="particles"></div>
-
-  <!-- Content -->
-  <div class="content-wrapper">
-    <header>
+    <header id="main-header">
       <div class="container">
         <div class="header-content">
           <div class="brand">
@@ -819,12 +1084,13 @@
               <p>Electrical & Plumbing Expert</p>
             </div>
           </div>
-          <nav>
+          <button class="mobile-menu-toggle" aria-label="Toggle menu">☰</button>
+          <nav id="main-nav">
             <a href="#about">About</a>
             <a href="#services">Services</a>
             <a href="#features">Why Choose Us</a>
             <a href="#contact">Contact</a>
-            <button class="cta-btn"> <a href="tel:9448411428" style="text-decoration:none ;">Emergency Call</a></button>
+            <button class="cta-btn"><a href="tel:9448411428">Emergency Call</a></button>
           </nav>
         </div>
       </div>
@@ -832,7 +1098,7 @@
 
     <main class="container">
       <section class="hero">
-        <div class="hero-content" data-aos="fade-right">
+        <div class="hero-content" data-aos="fade-right" data-aos-duration="1000">
           <h2>
             Professional <span class="highlight">Electrical</span> & <span class="highlight">Plumbing</span> Services
           </h2>
@@ -840,26 +1106,26 @@
             Transparent pricing. We keep your home powered and flowing.
           </p>
           <div class="hero-buttons">
-            <button class="btn btn-primary">
-                 <a href="tel:9483325118" style="text-decoration:none;color: whitesmoke;">⚡ Call Me</a>
-            </button>
-           
+            <a href="tel:9483325118" class="btn btn-primary">⚡ Call Me</a>
+          </div>
+          <div class="hero-buttons">
+            <a href="tel:9448411428" class="btn btn-primary">💧 Call Me</a>
           </div>
         </div>
 
-        <div class="hero-visual" data-aos="fade-left">
+        <div class="hero-visual" data-aos="fade-left" data-aos-duration="1000">
           <div class="service-card">
-            <h3 style="color: var(--dark); margin-bottom: 1rem;">Your Go-To Technician</h3>
+            <h3>Your Go-To Technician</h3>
             <div class="service-grid">
               <div class="mini-card" data-aos="zoom-in" data-aos-delay="100">
                 <div class="icon">⚡</div>
                 <h4>Electrical</h4>
-                <p>Wiring, panels, lighting,<b>etc...</b></p>
+                <p>Wiring, panels, lighting, <b>etc...</b></p>
               </div>
               <div class="mini-card" data-aos="zoom-in" data-aos-delay="200">
                 <div class="icon">💧</div>
                 <h4>Plumbing</h4>
-                <p>Pipes, drains,<b>etc..</b></p>
+                <p>Pipes, drains, <b>etc..</b></p>
               </div>
               <div class="mini-card" data-aos="zoom-in" data-aos-delay="300">
                 <div class="icon">🔧</div>
@@ -876,30 +1142,42 @@
         </div>
       </section>
 
-      <!-- NEW About Section -->
+      <!-- About Section -->
       <section class="about-section" id="about">
         <div class="about-container">
-          <div class="profile-card" data-aos="fade-right">
-            <div class="profile-image"><img src="me.png" alt="me" style="    width: 90%;
-    height: 103%;
-    position: relative;
-    top: 5%;"></div>
+          <div class="profile-card" data-aos="fade-right" data-aos-duration="1000">
+            <div class="profile-image">
+              <span style="font-size: clamp(3rem, 10vw, 4rem);">👨‍🔧</span>
+            </div>
             <h3 class="profile-name">Nayaz Shariff</h3>
-            <p class="profile-title"></p>
+            <p class="profile-title">Master Electrician & Plumber</p>
             <div class="profile-social">
-              <a href="#" class="social-icon linkedin" title="LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M160 96C124.7 96 96 124.7 96 160L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 160C544 124.7 515.3 96 480 96L160 96zM165 266.2L231.5 266.2L231.5 480L165 480L165 266.2zM236.7 198.5C236.7 219.8 219.5 237 198.2 237C176.9 237 159.7 219.8 159.7 198.5C159.7 177.2 176.9 160 198.2 160C219.5 160 236.7 177.2 236.7 198.5zM413.9 480L413.9 376C413.9 351.2 413.4 319.3 379.4 319.3C344.8 319.3 339.5 346.3 339.5 374.2L339.5 480L273.1 480L273.1 266.2L336.8 266.2L336.8 295.4L337.7 295.4C346.6 278.6 368.3 260.9 400.6 260.9C467.8 260.9 480.3 305.2 480.3 362.8L480.3 480L413.9 480z"/></svg></a>
-              <a href="#" class="social-icon github" title="GitHub" ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"style="background-color:brown;border-radius: 9px;"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M581.7 188.1C575.5 164.4 556.9 145.8 533.4 139.5C490.9 128 320.1 128 320.1 128C320.1 128 149.3 128 106.7 139.5C83.2 145.8 64.7 164.4 58.4 188.1C47 231 47 320.4 47 320.4C47 320.4 47 409.8 58.4 452.7C64.7 476.3 83.2 494.2 106.7 500.5C149.3 512 320.1 512 320.1 512C320.1 512 490.9 512 533.5 500.5C557 494.2 575.5 476.3 581.8 452.7C593.2 409.8 593.2 320.4 593.2 320.4C593.2 320.4 593.2 231 581.8 188.1zM264.2 401.6L264.2 239.2L406.9 320.4L264.2 401.6z"/></svg></a>
-              <a href="mailto:nayazshariff0786@gmail.com" class="social-icon email" title="Email"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M112 128C85.5 128 64 149.5 64 176C64 191.1 71.1 205.3 83.2 214.4L291.2 370.4C308.3 383.2 331.7 383.2 348.8 370.4L556.8 214.4C568.9 205.3 576 191.1 576 176C576 149.5 554.5 128 528 128L112 128zM64 260L64 448C64 483.3 92.7 512 128 512L512 512C547.3 512 576 483.3 576 448L576 260L377.6 408.8C343.5 434.4 296.5 434.4 262.4 408.8L64 260z"/></svg>    </a>
+              <a href="#" class="social-icon linkedin" title="LinkedIn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                  <path d="M160 96C124.7 96 96 124.7 96 160L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 160C544 124.7 515.3 96 480 96L160 96zM165 266.2L231.5 266.2L231.5 480L165 480L165 266.2zM236.7 198.5C236.7 219.8 219.5 237 198.2 237C176.9 237 159.7 219.8 159.7 198.5C159.7 177.2 176.9 160 198.2 160C219.5 160 236.7 177.2 236.7 198.5zM413.9 480L413.9 376C413.9 351.2 413.4 319.3 379.4 319.3C344.8 319.3 339.5 346.3 339.5 374.2L339.5 480L273.1 480L273.1 266.2L336.8 266.2L336.8 295.4L337.7 295.4C346.6 278.6 368.3 260.9 400.6 260.9C467.8 260.9 480.3 305.2 480.3 362.8L480.3 480L413.9 480z"/>
+                </svg>
+              </a>
+              <a href="#" class="social-icon github" title="YouTube">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                  <path d="M581.7 188.1C575.5 164.4 556.9 145.8 533.4 139.5C490.9 128 320.1 128 320.1 128C320.1 128 149.3 128 106.7 139.5C83.2 145.8 64.7 164.4 58.4 188.1C47 231 47 320.4 47 320.4C47 320.4 47 409.8 58.4 452.7C64.7 476.3 83.2 494.2 106.7 500.5C149.3 512 320.1 512 320.1 512C320.1 512 490.9 512 533.5 500.5C557 494.2 575.5 476.3 581.8 452.7C593.2 409.8 593.2 320.4 593.2 320.4C593.2 320.4 593.2 231 581.8 188.1zM264.2 401.6L264.2 239.2L406.9 320.4L264.2 401.6z"/>
+                </svg>
+              </a>
+              <a href="mailto:nayazshariff0786@gmail.com" class="social-icon email" title="Email">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                  <path d="M112 128C85.5 128 64 149.5 64 176C64 191.1 71.1 205.3 83.2 214.4L291.2 370.4C308.3 383.2 331.7 383.2 348.8 370.4L556.8 214.4C568.9 205.3 576 191.1 576 176C576 149.5 554.5 128 528 128L112 128zM64 260L64 448C64 483.3 92.7 512 128 512L512 512C547.3 512 576 483.3 576 448L576 260L377.6 408.8C343.5 434.4 296.5 434.4 262.4 408.8L64 260z"/>
+                </svg>
+              </a>
             </div>
           </div>
 
-          <div class="about-content" data-aos="fade-left">
+          <div class="about-content" data-aos="fade-left" data-aos-duration="1000">
             <h2>About Me</h2>
             <p>
-                With over 25 years of hands-on experience, I specialize in providing reliable electrical and plumbing solutions for homes, offices, and commercial spaces. I’ve built my career on trust, precision, and a deep understanding of how things work behind the walls — from wiring systems and installations to leak repairs and complete maintenance setups.
+              With over 25 years of hands-on experience, I specialize in providing reliable electrical and plumbing solutions for homes, offices, and commercial spaces. I've built my career on trust, precision, and a deep understanding of how things work behind the walls — from wiring systems and installations to leak repairs and complete maintenance setups.
+            </p>
             <p>
-                Every project I take on is handled with professionalism, safety, and attention to detail. My goal is simple: to deliver quality work that lasts and to ensure every client feels confident in the services they receive. Whether it’s a quick fix or a full-scale installation, you can count on experience that speaks through results.
-            
+              Every project I take on is handled with professionalism, safety, and attention to detail. My goal is simple: to deliver quality work that lasts and to ensure every client feels confident in the services they receive. Whether it's a quick fix or a full-scale installation, you can count on experience that speaks through results.
+            </p>
             <div class="skills-list">
               <div class="skill-item" data-aos="fade-up" data-aos-delay="100">
                 <span class="skill-icon">⚡</span>
@@ -916,7 +1194,7 @@
 
       <section class="features" id="features">
         <div class="section-header">
-          <h2 style="color: white;">Why Choose Me?</h2>
+          <h2>Why Choose Me?</h2>
         </div>
         <div class="features-grid">
           <div class="feature-item" data-aos="fade-up" data-aos-delay="100">
@@ -929,12 +1207,12 @@
           <div class="feature-item" data-aos="fade-up" data-aos-delay="200">
             <div class="feature-icon water">💧</div>
             <div class="feature-text">
-              <h3>Reliable & Trustworthy:</h3>
+              <h3>Reliable & Trustworthy</h3>
               <p>Known for completing every task safely, on time, and with lasting results.</p>
             </div>
           </div>
           <div class="feature-item" data-aos="fade-up" data-aos-delay="300">
-            <div class="feature-icon electric"><img src="gift.png" alt="handsonexp" style="height: 50%;"></div>
+            <div class="feature-icon electric">🎁</div>
             <div class="feature-text">
               <h3>Hands-On Expertise</h3>
               <p>Every service is done personally with care, precision, and attention to detail.</p>
@@ -952,7 +1230,7 @@
           <div class="service-item" data-aos="flip-left" data-aos-delay="100">
             <div class="service-icon">⚡</div>
             <h3>Electrical Services</h3>
-            <p>Complete electrical solutions including wiring,Meter board Fixing,New Earthing,lighting installation, outlet repair, and circuit troubleshooting.</p>
+            <p>Complete electrical solutions including wiring, Meter board Fixing, New Earthing, lighting installation, outlet repair, and circuit troubleshooting.</p>
           </div>
           <div class="service-item" data-aos="flip-left" data-aos-delay="200">
             <div class="service-icon">💧</div>
@@ -993,7 +1271,7 @@
             <p>Plumbing Work Completed</p>
           </div>
           <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
-            <h3 class="counter" data-target="25+">0</h3>
+            <h3>25+</h3>
             <p>Years Experience</p>
           </div>
         </div>
@@ -1011,8 +1289,8 @@
           <div class="footer-links">
             <a href="#services">Services</a>
             <a href="#about">About</a>
-            <a href="tel:+911234567890">Call: +91 9448411428</a>
-            <a href="tel:+911234567890">Call: +91 9483325118</a>
+            <a href="tel:+919448411428">Call: +91 9448411428</a>
+            <a href="tel:+919483325118">Call: +91 9483325118</a>
           </div>
         </div>
       </div>
@@ -1023,19 +1301,87 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
   <script>
-    // Initialize AOS
+    // Initialize AOS with enhanced settings
     AOS.init({
-      duration: 800,
+      duration: 1000,
       once: true,
-      easing: 'ease-out-cubic'
+      easing: 'ease-out-cubic',
+      offset: 50,
+      mobile: true
     });
 
-    // Animated Background Canvas - Pipes & Circuits
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
+    // Header scroll effect
+    const header = document.getElementById('main-header');
+    let lastScroll = 0;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset;
+      
+      if (currentScroll > 100) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+      
+      lastScroll = currentScroll;
+    }, { passive: true });
+
+    // Mobile Menu Toggle with improved UX
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    const mainNav = document.getElementById('main-nav');
+    const body = document.body;
+    
+    mobileMenuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mainNav.classList.toggle('active');
+      mobileMenuToggle.textContent = mainNav.classList.contains('active') ? '✕' : '☰';
+      
+      // Prevent scroll when menu is open
+      if (mainNav.classList.contains('active')) {
+        body.style.overflow = 'hidden';
+      } else {
+        body.style.overflow = '';
+      }
+    });
+
+    // Close mobile menu when clicking on a link
+    const navLinks = document.querySelectorAll('nav a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        mainNav.classList.remove('active');
+        mobileMenuToggle.textContent = '☰';
+        body.style.overflow = '';
+      });
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!mainNav.contains(e.target) && !mobileMenuToggle.contains(e.target) && mainNav.classList.contains('active')) {
+        mainNav.classList.remove('active');
+        mobileMenuToggle.textContent = '☰';
+        body.style.overflow = '';
+      }
+    });
+
+    // Animated Background Canvas with performance optimization
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    let animationId;
+    let isVisible = true;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+
+    // Visibility API for performance
+    document.addEventListener('visibilitychange', () => {
+      isVisible = !document.hidden;
+      if (isVisible && !animationId) {
+        animate();
+      }
+    });
 
     class Pipe {
       constructor() {
@@ -1096,13 +1442,12 @@
       }
     }
 
-    // Create pipes array
     const pipes = [];
-    for (let i = 0; i < 30; i++) {
+    const pipeCount = window.innerWidth < 768 ? 15 : 30;
+    for (let i = 0; i < pipeCount; i++) {
       pipes.push(new Pipe());
     }
 
-    // Circuit nodes
     class CircuitNode {
       constructor() {
         this.x = Math.random() * canvas.width;
@@ -1132,7 +1477,6 @@
         
         ctx.fill();
         
-        // Glow effect
         ctx.shadowBlur = 15;
         ctx.shadowColor = this.type === 'electric' ? '#fbbf24' : '#06b6d4';
         ctx.fill();
@@ -1141,12 +1485,17 @@
     }
 
     const nodes = [];
-    for (let i = 0; i < 20; i++) {
+    const nodeCount = window.innerWidth < 768 ? 10 : 20;
+    for (let i = 0; i < nodeCount; i++) {
       nodes.push(new CircuitNode());
     }
 
-    // Animation loop
     function animate() {
+      if (!isVisible) {
+        animationId = null;
+        return;
+      }
+
       ctx.fillStyle = 'rgba(15, 23, 42, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
@@ -1160,24 +1509,37 @@
         node.draw();
       });
       
-      requestAnimationFrame(animate);
+      animationId = requestAnimationFrame(animate);
     }
 
     animate();
 
-    // Resize handler
+    let resizeTimeout;
     window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        resizeCanvas();
+        // Adjust particle count based on screen size
+        const newPipeCount = window.innerWidth < 768 ? 15 : 30;
+        while (pipes.length < newPipeCount) {
+          pipes.push(new Pipe());
+        }
+        while (pipes.length > newPipeCount) {
+          pipes.pop();
+        }
+      }, 250);
+    }, { passive: true });
 
-    // Create floating particles
+    // Create floating particles with responsive count
     const particlesContainer = document.getElementById('particles');
-    for (let i = 0; i < 15; i++) {
+    const particleCount = window.innerWidth < 768 ? 8 : 15;
+    
+    for (let i = 0; i < particleCount; i++) {
       const particle = document.createElement('div');
       particle.className = `particle ${Math.random() > 0.5 ? 'electric' : 'water'}`;
-      particle.style.width = Math.random() * 30 + 10 + 'px';
-      particle.style.height = particle.style.width;
+      const size = Math.random() * 30 + 10;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
       particle.style.left = Math.random() * 100 + '%';
       particle.style.top = Math.random() * 100 + '%';
       particle.style.animationDelay = Math.random() * 20 + 's';
@@ -1186,7 +1548,7 @@
       particlesContainer.appendChild(particle);
     }
 
-    // Counter animation
+    // Counter animation with Intersection Observer
     const counters = document.querySelectorAll('.counter');
     const animateCounter = (element) => {
       const target = parseInt(element.getAttribute('data-target'));
@@ -1207,7 +1569,6 @@
       updateCounter();
     };
 
-    // Intersection Observer for counters
     const observerOptions = {
       threshold: 0.5,
       rootMargin: '0px'
@@ -1224,267 +1585,378 @@
 
     counters.forEach(counter => observer.observe(counter));
 
-    // GSAP Animations
-    gsap.from('.hero-content h2', {
-      y: 50,
-      opacity: 0,
-      duration: 1,
-      delay: 0.3,
-      ease: 'power3.out'
-    });
-
-    gsap.from('.hero-content p', {
-      y: 30,
-      opacity: 0,
-      duration: 0.8,
-      delay: 0.5,
-      ease: 'power3.out'
-    });
-
-    gsap.from('.hero-buttons', {
-      y: 30,
-      opacity: 0,
-      duration: 0.8,
-      delay: 0.7,
-      ease: 'power3.out'
-    });
-
-    // Interactive service cards with advanced effects
-    const serviceItems = document.querySelectorAll('.service-item');
-    serviceItems.forEach((card, index) => {
-      card.addEventListener('mouseenter', () => {
-        gsap.to(card, {
-          y: -12,
-          scale: 1.02,
-          duration: 0.4,
-          ease: 'power2.out'
-        });
+    // GSAP Animations with stagger
+    if (typeof gsap !== 'undefined') {
+      gsap.from('.hero-content h2', {
+        y: 50,
+        opacity: 0,
+        duration: 1,
+        delay: 0.3,
+        ease: 'power3.out'
       });
-      
-      card.addEventListener('mouseleave', () => {
-        gsap.to(card, {
-          y: 0,
-          scale: 1,
-          duration: 0.4,
-          ease: 'power2.out'
-        });
-      });
-    });
 
-    // Mini cards hover effect
-    const miniCards = document.querySelectorAll('.mini-card');
-    miniCards.forEach(card => {
-      card.addEventListener('mouseenter', () => {
-        gsap.to(card, {
-          scale: 1.05,
-          duration: 0.3,
-          ease: 'back.out(1.7)'
-        });
+      gsap.from('.hero-content p', {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        delay: 0.5,
+        ease: 'power3.out'
       });
-      
-      card.addEventListener('mouseleave', () => {
-        gsap.to(card, {
-          scale: 1,
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-    });
 
-    // Button interactions
-    const buttons = document.querySelectorAll('.btn, .cta-btn');
-    buttons.forEach(btn => {
-      btn.addEventListener('mouseenter', (e) => {
-        gsap.to(btn, {
-          scale: 1.05,
-          duration: 0.3,
-          ease: 'back.out(1.7)'
-        });
+      gsap.from('.hero-buttons', {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        delay: 0.7,
+        stagger: 0.2,
+        ease: 'power3.out'
       });
-      
-      btn.addEventListener('mouseleave', () => {
-        gsap.to(btn, {
-          scale: 1,
-          duration: 0.3,
-          ease: 'power2.out'
+
+      // Service cards hover with enhanced effects
+      const serviceItems = document.querySelectorAll('.service-item');
+      serviceItems.forEach((card) => {
+        card.addEventListener('mouseenter', () => {
+          gsap.to(card, {
+            y: -12,
+            scale: 1.02,
+            duration: 0.4,
+            ease: 'power2.out'
+          });
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          gsap.to(card, {
+            y: 0,
+            scale: 1,
+            duration: 0.4,
+            ease: 'power2.out'
+          });
+        });
+
+        // Mobile touch support
+        card.addEventListener('touchstart', () => {
+          gsap.to(card, {
+            scale: 0.98,
+            duration: 0.2,
+            ease: 'power2.out'
+          });
+        });
+        
+        card.addEventListener('touchend', () => {
+          gsap.to(card, {
+            scale: 1,
+            duration: 0.3,
+            ease: 'back.out(1.7)'
+          });
         });
       });
 
-      btn.addEventListener('click', () => {
-        gsap.to(btn, {
-          scale: 0.95,
-          duration: 0.1,
-          yoyo: true,
-          repeat: 1,
-          ease: 'power2.inOut'
+      // Mini cards hover effect
+      const miniCards = document.querySelectorAll('.mini-card');
+      miniCards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          gsap.to(card, {
+            scale: 1.05,
+            duration: 0.3,
+            ease: 'back.out(1.7)'
+          });
         });
-      });
-    });
+        
+        card.addEventListener('mouseleave', () => {
+          gsap.to(card, {
+            scale: 1,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
 
-    // Profile card animation
-    const profileCard = document.querySelector('.profile-card');
-    if (profileCard) {
-      profileCard.addEventListener('mouseenter', () => {
-        gsap.to(profileCard, {
-          y: -8,
-          duration: 0.4,
-          ease: 'power2.out'
+        // Mobile touch support
+        card.addEventListener('touchstart', () => {
+          gsap.to(card, {
+            scale: 0.95,
+            duration: 0.15
+          });
+        });
+        
+        card.addEventListener('touchend', () => {
+          gsap.to(card, {
+            scale: 1,
+            duration: 0.3,
+            ease: 'back.out(1.7)'
+          });
         });
       });
-      
-      profileCard.addEventListener('mouseleave', () => {
-        gsap.to(profileCard, {
-          y: 0,
-          duration: 0.4,
-          ease: 'power2.out'
+
+      // Button interactions
+      const buttons = document.querySelectorAll('.btn, .cta-btn');
+      buttons.forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, {
+            scale: 1.05,
+            duration: 0.3,
+            ease: 'back.out(1.7)'
+          });
         });
+        
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, {
+            scale: 1,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+
+        btn.addEventListener('click', (e) => {
+          gsap.to(btn, {
+            scale: 0.95,
+            duration: 0.1,
+            yoyo: true,
+            repeat: 1,
+            ease: 'power2.inOut'
+          });
+        });
+
+        // Mobile touch feedback
+        btn.addEventListener('touchstart', () => {
+          gsap.to(btn, {
+            scale: 0.95,
+            duration: 0.1
+          });
+        });
+        
+        btn.addEventListener('touchend', () => {
+          gsap.to(btn, {
+            scale: 1,
+            duration: 0.2,
+            ease: 'back.out(1.7)'
+          });
+        });
+      });
+
+      // Profile card animation
+      const profileCard = document.querySelector('.profile-card');
+      if (profileCard) {
+        profileCard.addEventListener('mouseenter', () => {
+          gsap.to(profileCard, {
+            y: -8,
+            duration: 0.4,
+            ease: 'power2.out'
+          });
+        });
+        
+        profileCard.addEventListener('mouseleave', () => {
+          gsap.to(profileCard, {
+            y: 0,
+            duration: 0.4,
+            ease: 'power2.out'
+          });
+        });
+      }
+
+      // Social icons animation
+      const socialIcons = document.querySelectorAll('.social-icon');
+      socialIcons.forEach(icon => {
+        icon.addEventListener('mouseenter', () => {
+          gsap.to(icon, {
+            scale: 1.15,
+            rotation: 5,
+            duration: 0.3,
+            ease: 'back.out(1.7)'
+          });
+        });
+        
+        icon.addEventListener('mouseleave', () => {
+          gsap.to(icon, {
+            scale: 1,
+            rotation: 0,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+
+        // Mobile touch support
+        icon.addEventListener('touchstart', () => {
+          gsap.to(icon, {
+            scale: 1.1,
+            duration: 0.15
+          });
+        });
+        
+        icon.addEventListener('touchend', () => {
+          gsap.to(icon, {
+            scale: 1,
+            duration: 0.2
+          });
+        });
+      });
+
+      // Logo animation
+      const logo = document.querySelector('.logo');
+      gsap.to(logo, {
+        rotation: 360,
+        duration: 20,
+        repeat: -1,
+        ease: 'none'
       });
     }
 
-    // Social icons animation
-    const socialIcons = document.querySelectorAll('.social-icon');
-    socialIcons.forEach(icon => {
-      icon.addEventListener('mouseenter', () => {
-        gsap.to(icon, {
-          scale: 1.15,
-          rotation: 5,
-          duration: 0.3,
-          ease: 'back.out(1.7)'
-        });
-      });
-      
-      icon.addEventListener('mouseleave', () => {
-        gsap.to(icon, {
-          scale: 1,
-          rotation: 0,
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-    });
-
-    // Parallax effect on scroll
-    window.addEventListener('scroll', () => {
-      const scrolled = window.pageYOffset;
-      const parallaxElements = document.querySelectorAll('.hero-visual, .service-card');
-      
-      parallaxElements.forEach(el => {
-        const speed = 0.5;
-        gsap.to(el, {
-          y: scrolled * speed,
-          duration: 0.5,
-          ease: 'power1.out'
-        });
-      });
-    });
-
-    // Advanced lightning bolt effect on electrical icon hover
-    const electricIcons = document.querySelectorAll('.feature-icon.electric');
-    electricIcons.forEach(icon => {
-      icon.addEventListener('mouseenter', () => {
-        gsap.to(icon, {
-          boxShadow: '0 0 30px rgba(251, 191, 36, 0.8), 0 0 60px rgba(251, 191, 36, 0.4)',
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-      
-      icon.addEventListener('mouseleave', () => {
-        gsap.to(icon, {
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-    });
-
-    // Water ripple effect on water icon hover
-    const waterIcons = document.querySelectorAll('.feature-icon.water');
-    waterIcons.forEach(icon => {
-      icon.addEventListener('mouseenter', () => {
-        gsap.to(icon, {
-          boxShadow: '0 0 30px rgba(6, 182, 212, 0.8), 0 0 60px rgba(6, 182, 212, 0.4)',
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-      
-      icon.addEventListener('mouseleave', () => {
-        gsap.to(icon, {
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
-          duration: 0.3,
-          ease: 'power2.out'
-        });
-      });
-    });
-
-    // Smooth scroll for navigation
+    // Smooth scroll with offset for fixed header
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        const targetId = this.getAttribute('href');
+        const target = document.querySelector(targetId);
+        
         if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
+          const headerHeight = header.offsetHeight;
+          const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+          
+          window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
           });
         }
       });
     });
 
-    // Logo animation
-    const logo = document.querySelector('.logo');
-    gsap.to(logo, {
-      rotation: 360,
-      duration: 20,
-      repeat: -1,
-      ease: 'none'
-    });
-
-    // Random electrical spark effect
-    setInterval(() => {
-      const sparkX = Math.random() * canvas.width;
-      const sparkY = Math.random() * canvas.height;
-      
-      ctx.save();
-      ctx.translate(sparkX, sparkY);
-      ctx.strokeStyle = 'rgba(251, 191, 36, 0.6)';
-      ctx.lineWidth = 2;
-      
-      for (let i = 0; i < 5; i++) {
-        const angle = (Math.PI * 2 / 5) * i;
-        const length = Math.random() * 20 + 10;
-        
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(
-          Math.cos(angle) * length,
-          Math.sin(angle) * length
-        );
-        ctx.stroke();
-      }
-      
-      ctx.restore();
-    }, 3000);
-
-    console.log('⚡ PowerFlow Services - Interactive Background Active 💧');
-
-    // Loader transition: after window load, fade out loader, fade in content
+    // Loader transition with improved timing
     window.addEventListener('load', () => {
       setTimeout(() => {
-        document.getElementById('loader-wrapper').classList.add('hide');
+        const loaderWrapper = document.getElementById('loader-wrapper');
+        const mainContent = document.getElementById('main-content');
+        
+        loaderWrapper.classList.add('hide');
+        
         setTimeout(() => {
-          document.getElementById('loader-wrapper').style.display = "none";
-          document.getElementById('main-content').classList.add('visible');
+          loaderWrapper.style.display = 'none';
+          mainContent.classList.add('visible');
         }, 600);
-      }, 800); // Loader stays for 0.8s (tweak as desired)
+      }, 800);
     });
-    // Your existing JS for background, gsap, aos etc. goes here
-    // For example:
-    AOS.init({ duration: 800, once: true, easing: 'ease-out-cubic' });
-    // ... existing scripts for background, particles, interactions...
+
+    // Passive event listeners for better scroll performance
+    document.addEventListener('touchstart', () => {}, { passive: true });
+    document.addEventListener('touchmove', () => {}, { passive: true });
+
+    // Preload critical images (if any are added later)
+    const preloadImages = () => {
+      const images = document.querySelectorAll('img[data-src]');
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+            imageObserver.unobserve(img);
+          }
+        });
+      });
+
+      images.forEach(img => imageObserver.observe(img));
+    };
+
+    preloadImages();
+
+    // Service Worker for offline capability (optional)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // Uncomment to enable service worker
+        // navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    // Add ripple effect to buttons on touch devices
+    function createRipple(event) {
+      const button = event.currentTarget;
+      const ripple = document.createElement('span');
+      const diameter = Math.max(button.clientWidth, button.clientHeight);
+      const radius = diameter / 2;
+
+      ripple.style.width = ripple.style.height = `${diameter}px`;
+      ripple.style.left = `${event.clientX - button.offsetLeft - radius}px`;
+      ripple.style.top = `${event.clientY - button.offsetTop - radius}px`;
+      ripple.classList.add('ripple');
+
+      const rippleStyle = document.createElement('style');
+      rippleStyle.textContent = `
+        .ripple {
+          position: absolute;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.4);
+          transform: scale(0);
+          animation: ripple-animation 0.6s ease-out;
+          pointer-events: none;
+        }
+        @keyframes ripple-animation {
+          to {
+            transform: scale(4);
+            opacity: 0;
+          }
+        }
+      `;
+
+      if (!document.querySelector('style[data-ripple]')) {
+        rippleStyle.setAttribute('data-ripple', 'true');
+        document.head.appendChild(rippleStyle);
+      }
+
+      const existingRipple = button.querySelector('.ripple');
+      if (existingRipple) {
+        existingRipple.remove();
+      }
+
+      button.style.position = 'relative';
+      button.style.overflow = 'hidden';
+      button.appendChild(ripple);
+
+      setTimeout(() => ripple.remove(), 600);
+    }
+
+    // Add ripple to all interactive elements
+    const interactiveElements = document.querySelectorAll('.btn, .cta-btn, .social-icon, .mini-card, .service-item');
+    interactiveElements.forEach(element => {
+      element.addEventListener('click', createRipple);
+    });
+
+    // Performance monitoring (optional - remove in production)
+    if (window.performance && window.performance.timing) {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const perfData = window.performance.timing;
+          const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+          console.log(`Page load time: ${pageLoadTime}ms`);
+        }, 0);
+      });
+    }
+
+    // Add loading="lazy" to images for better performance
+    document.querySelectorAll('img').forEach(img => {
+      if (!img.hasAttribute('loading')) {
+        img.setAttribute('loading', 'lazy');
+      }
+    });
+
+    // Debounced resize handler for better performance
+    let windowWidth = window.innerWidth;
+    window.addEventListener('resize', () => {
+      if (window.innerWidth !== windowWidth) {
+        windowWidth = window.innerWidth;
+        // Handle layout changes if needed
+      }
+    }, { passive: true });
+
+    // Prevent zoom on double tap (iOS)
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (event) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, { passive: false });
+
+    console.log('%c🔌 Shariff Electrician & Plumber', 'font-size: 20px; font-weight: bold; color: #fbbf24;');
+    console.log('%c✨ Website loaded successfully!', 'font-size: 14px; color: #06b6d4;');
   </script>
-  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </body>
 </html>
